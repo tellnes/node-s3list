@@ -1,0 +1,17 @@
+{
+  "author": "Christian Tellnes <christian@tellnes.no> (http://christian.tellnes.com/)",
+  "name": "s3list",
+  "description": "Aws S3 file lister",
+  "keywords": "aws amazon s3 list simple storage service",
+  "version": "0.0.1",
+  "main": "index.js",
+  "dependencies": {
+    "request": "git://github.com/mikeal/request.git",
+    "sax": "~0.4.0"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
