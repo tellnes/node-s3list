@@ -5,6 +5,27 @@ var Stream = require('stream').Stream
   , SAXParser = require('sax').SAXParser
 
 
+function S3Error(data) {
+  Error.captureStackTrace(this, S3Error)
+  this.code = data.Code
+  this.name = 'S3' + data.Code
+  this.message = data.Message
+  this.bucketName = data.BucketName
+  this.requestId = data.RequestId
+  this.hostId = HostId
+}
+inherits(S3Error, Error)
+exports.S3Error = S3Error
+
+
+function SaxParseError(message) {
+  Error.captureStackTrace(this, ParseError)
+  this.name = 'SaxParseError'
+  this.message = message
+}
+inherits(ParseError, Error)
+exports.ParseError = ParseError
+
 
 exports = module.exports = function(opts) {
   opts = opts || {}
@@ -156,7 +177,7 @@ function Parser(request) {
       break
 
     default:
-      self.emit('error', new Error('Unknown open tag; ' + key))
+      //self.emit('error', new Error('Unknown open tag; ' + key))
       break
 
     }
@@ -194,7 +215,7 @@ function Parser(request) {
       break
 
     default:
-      self.emit('error', new Error('Unknown close tag; ' + name))
+      //self.emit('error', new Error('Unknown close tag; ' + name))
       break
 
     }
@@ -257,7 +278,7 @@ function Parser(request) {
 
   parser.onerror = function(err) {
     self.writable = false
-    self.emit('error', err)
+    self.emit('error', new ParseError(err.error))
   }
 }
 inherits(Parser, Stream)
