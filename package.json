@@ -2,7 +2,15 @@
   "author": "Christian Tellnes <christian@tellnes.no> (http://christian.tellnes.com/)",
   "name": "s3list",
   "description": "Lists files in an S3 bucket as a stream",
-  "keywords": "aws amazon s3 list simple storage service",
+  "keywords": [
+    "aws",
+    "amazon",
+    "s3",
+    "list",
+    "simple",
+    "storage",
+    "service"
+  ],
   "version": "0.0.1",
   "main": "index.js",
   "dependencies": {
