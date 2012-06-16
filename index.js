@@ -1,6 +1,6 @@
 var Stream = require('stream').Stream
   , request = require('request')
-  , util = require('util')
+  , inherits = require('util').inherits
   , querystring = require('querystring')
   , SAXParser = require('sax').SAXParser
 
@@ -85,7 +85,7 @@ function S3ListStream() {
   this.readable = true
   this.commonPrefixes = []
 }
-util.inherits(S3ListStream, Stream)
+inherits(S3ListStream, Stream)
 exports.S3ListStream = S3ListStream
 
 ;['pause', 'resume', 'destroy'].forEach(function(key) {
@@ -260,7 +260,7 @@ function Parser(request) {
     self.emit('error', err)
   }
 }
-util.inherits(Parser, Stream)
+inherits(Parser, Stream)
 exports.Parser = Parser
 
 Parser.prototype.write = function(chunk) {
