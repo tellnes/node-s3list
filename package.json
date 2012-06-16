@@ -25,5 +25,8 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/tellnes/node-s3list.git"
+  },
+  "publishConfig": {
+    "registry": "http://registry.npmjs.com/"
   }
 }
