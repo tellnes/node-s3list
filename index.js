@@ -18,9 +18,9 @@ inherits(S3Error, Error)
 exports.S3Error = S3Error
 
 
-function SaxParseError(message) {
+function ParseError(message) {
   Error.captureStackTrace(this, ParseError)
-  this.name = 'SaxParseError'
+  this.name = 'ParseError'
   this.message = message
 }
 inherits(ParseError, Error)
