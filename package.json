@@ -14,7 +14,7 @@
   "version": "0.1.0",
   "main": "index.js",
   "dependencies": {
-    "request": "~2.11.5",
+    "request": "~2.11.4",
     "sax": "~0.4.0"
   },
   "devDependencies": {},
