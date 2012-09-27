@@ -249,9 +249,12 @@ function Parser(request) {
     case 'error:HostId':
 
     case 'file:Key':
-    case 'file:ETag':
     case 'file:StorageClass':
       obj[key] = text
+      break
+
+    case 'file:ETag':
+      obj[key] = text.slice(1, -1)
       break
 
     case 'file:Size':
