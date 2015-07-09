@@ -13,7 +13,7 @@ function S3Error(data) {
   this.message = data.Message
   this.bucketName = data.BucketName
   this.requestId = data.RequestId
-  this.hostId = HostId
+  this.hostId = data.HostId
 }
 inherits(S3Error, Error)
 exports.S3Error = S3Error
@@ -33,8 +33,7 @@ exports = module.exports = function(opts) {
 
   var stream = new S3ListStream()
     , remaining = opts['max-keys'] || opts.maxkeys || Infinity
-    , received = 0
-    , secure = typeof opts.secure == 'undefined' ? true : opts.secure
+    , secure = typeof opts.secure === 'undefined' ? true : opts.secure
     , aws = { key: opts.key
             , secret: opts.secret
             , bucket: opts.bucket
@@ -69,13 +68,13 @@ exports = module.exports = function(opts) {
     if (marker) qs.marker = marker
     if (remaining < 1000) qs['max-keys'] = remaining
 
-    var uri = 'http'
-            + (secure ? 's' : '')
-            + '://'
-            + aws.bucket
-            + '.s3.amazonaws.com'
-            + '/?'
-            + querystring.stringify(qs)
+    var uri = 'http' +
+              (secure ? 's' : '') +
+              '://' +
+              aws.bucket +
+              '.s3.amazonaws.com' +
+              '/?' +
+              querystring.stringify(qs)
 
     var req = request(uri)
     req.aws(aws)
@@ -139,7 +138,7 @@ function Parser(request) {
     key = info.name
     switch(state) {
     case 'start':
-      if (key == 'Error') {
+      if (key === 'Error') {
         state = 'error'
         obj = {}
       } else {
@@ -148,16 +147,16 @@ function Parser(request) {
       break
 
     case 'meta':
-      if (key == 'Contents') {
+      if (key === 'Contents') {
         state = 'file'
         obj = {}
-      } else if (key == 'CommonPrefixes') {
+      } else if (key === 'CommonPrefixes') {
         state = 'prefixes'
       }
       break
 
     case 'file':
-      if (key == 'Owner') {
+      if (key === 'Owner') {
         state = 'owner'
         obj.Owner = {}
       }
@@ -178,19 +177,19 @@ function Parser(request) {
   parser.onclosetag = function(name) {
     switch(state) {
     case 'error':
-      if (name == 'Error') {
+      if (name === 'Error') {
         self.emit('error', obj)
       }
       break
 
     case 'owner':
-      if (name == 'Owner') {
+      if (name === 'Owner') {
         state = 'file'
       }
       break
 
     case 'file':
-      if (name == 'Contents') {
+      if (name === 'Contents') {
         self.received++
         self.push(obj)
         state = 'meta'
@@ -198,7 +197,7 @@ function Parser(request) {
       break
 
     case 'prefixes':
-      if (name == 'CommonPrefixes') {
+      if (name === 'CommonPrefixes') {
         state = 'meta'
       }
       break
@@ -226,7 +225,7 @@ function Parser(request) {
       break
 
     case 'meta:IsTruncated':
-      meta[key] = text == 'true' ? true : false
+      meta[key] = text === 'true' ? true : false
       break
 
     case 'prefixes:Prefix':
