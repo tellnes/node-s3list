@@ -1,4 +1,5 @@
-var Stream = require('stream').Stream
+var PassThrough = require('stream').PassThrough
+  , Transform = require('stream').Transform
   , request = require('request')
   , inherits = require('util').inherits
   , querystring = require('querystring')
@@ -46,9 +47,6 @@ exports = module.exports = function(opts) {
   function onerror(err) {
     stream.emit('error', err)
   }
-  function onfile(file) {
-    stream.emit('data', file)
-  }
   function onend() {
     remaining -= this.received
 
@@ -64,9 +62,7 @@ exports = module.exports = function(opts) {
 
     stream.name = this.meta.Name
     stream.delimiter = this.meta.Delimiter
-
-    this.readable = false
-    stream.emit('end')
+    stream.push(null)
   }
 
   function execute(marker) {
@@ -85,15 +81,19 @@ exports = module.exports = function(opts) {
     req.aws(aws)
 
     var parser = new Parser(req)
-    req.pipe(parser)
     stream.parser = parser
+
+    req.on('response', function(res) {
+      res.setEncoding('utf8')
+      res.on('error', onerror)
+      res.pipe(parser)
+    })
 
     req.on('error', onerror)
     parser.on('error', onerror)
 
-    parser.on('file', onfile)
+    parser.pipe(stream, { end: false })
     parser.on('end', onend)
-
   }
 
   execute()
@@ -102,27 +102,22 @@ exports = module.exports = function(opts) {
 }
 
 function S3ListStream() {
-  Stream.call(this)
-  this.readable = true
+  PassThrough.call(this, { objectMode: true })
   this.commonPrefixes = []
 }
-inherits(S3ListStream, Stream)
+inherits(S3ListStream, PassThrough)
 exports.S3ListStream = S3ListStream
 
-;['pause', 'resume', 'destroy'].forEach(function(key) {
-  S3ListStream.prototype[key] = function() {
-    if (key === 'destroy') this.readable = false
-
-    if (!this.parser) return
-    this.parser[key]()
-  }
-})
+S3ListStream.prototype.destroy = function() {
+  if (!this.parser) return
+  this.parser.destroy()
+}
 
 
 
 
 function Parser(request) {
-  Stream.call(this)
+  Transform.call(this, { decodeStrings: false, readableObjectMode: true })
 
   var parser = new SAXParser(true)
     , meta = {}
@@ -133,9 +128,6 @@ function Parser(request) {
 
 
   this.request = request
-
-  this.writable = true
-  this.paused = false
 
   this.parser = parser
   this.meta = meta
@@ -200,7 +192,7 @@ function Parser(request) {
     case 'file':
       if (name == 'Contents') {
         self.received++
-        self.emit('file', obj)
+        self.push(obj)
         state = 'meta'
       }
       break
@@ -275,39 +267,26 @@ function Parser(request) {
 
   parser.onend = function() {
     self.lastFile = obj
-    self.writable = false
-    self.emit('end')
+    self.push(null)
   }
 
   parser.onerror = function(err) {
-    self.writable = false
     self.emit('error', new ParseError(err.error))
   }
 }
-inherits(Parser, Stream)
+inherits(Parser, Transform)
 exports.Parser = Parser
 
-Parser.prototype.write = function(chunk) {
-  if (!this.writable) return
+Parser.prototype._transform = function(chunk, enc, cb) {
   this.parser.write(chunk.toString())
-  return !this.paused
+  cb()
 }
-Parser.prototype.end = function(chunk) {
-  if (!this.writable) return
-  if (chunk) this.write(chunk)
+
+Parser.prototype._flush = function() {
   this.parser.end()
 }
-Parser.prototype.pause = function() {
-  this.paused = true
-  this.request.pause()
-}
-Parser.prototype.resume = function() {
-  this.paused = false
-  this.emit('drain')
-  this.request.resume()
-}
+
 Parser.prototype.destroy = function() {
-  this.writable = false
   this.request.destroy()
   this.request.abort()
 }
