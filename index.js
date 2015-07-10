@@ -44,6 +44,8 @@ exports = module.exports = function(opts) {
   if (opts.prefix) qs.prefix = opts.prefix
 
   function onerror(err) {
+    if (stream.destroyed) return
+    stream.destroy()
     stream.emit('error', err)
   }
   function onend() {
@@ -103,13 +105,18 @@ exports = module.exports = function(opts) {
 function S3ListStream() {
   PassThrough.call(this, { objectMode: true })
   this.commonPrefixes = []
+  this.destroyed = false
 }
 inherits(S3ListStream, PassThrough)
 exports.S3ListStream = S3ListStream
 
 S3ListStream.prototype.destroy = function() {
-  if (!this.parser) return
-  this.parser.destroy()
+  this.destroyed = true
+  if (this.parser) {
+    this.parser.unpipe(this)
+    this.parser.destroy()
+    this.parser = null
+  }
 }
 
 
