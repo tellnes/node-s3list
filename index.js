@@ -1,5 +1,6 @@
-var PassThrough = require('stream').PassThrough
-  , Transform = require('stream').Transform
+var Stream = require('stream')
+  , PassThrough = Stream.PassThrough || require('readable-stream').PassThrough
+  , Transform = Stream.Transform || require('readable-stream').PassThrough
   , request = require('request')
   , inherits = require('util').inherits
   , querystring = require('querystring')
